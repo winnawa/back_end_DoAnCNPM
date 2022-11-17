@@ -5,6 +5,7 @@ from flask import Flask
 from cfg.config import Config
 from flask import Blueprint
 #from .extension import mongo
+from flask import  jsonify
 from flask import request,send_file
 import json
 from bson import json_util
@@ -38,10 +39,10 @@ def index():
     user_collection = mongo.db.posts.find({})
     data = [d for d in user_collection]
     print('this is a', data)
-    return "hi"
+    #return "hi"
     # posts = db.posts
     # result = posts.find({})
-    return json.loads(json_util.dumps(data))
+    return jsonify(json_util.dumps(data))
 
 
 
