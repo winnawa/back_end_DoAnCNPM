@@ -42,7 +42,7 @@ def index():
     #return "hi"
     # posts = db.posts
     # result = posts.find({})
-    return jsonify(json_util.dumps(data))
+    return json_util.dumps(data)
 
 
 
