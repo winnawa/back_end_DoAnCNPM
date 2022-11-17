@@ -12,10 +12,11 @@ from bson import json_util
 import base64
 import pandas
 from flask_pymongo import PyMongo
-
+from flask_cors import CORS
 
 mongo = PyMongo()
 app = Flask(__name__)
+CORS(app)
 app.config.from_object(Config)
 mongo.init_app(app)
 
