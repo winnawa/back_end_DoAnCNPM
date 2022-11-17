@@ -38,10 +38,10 @@ def index():
     user_collection = mongo.db.posts.find({})
     data = [d for d in user_collection]
     print('this is a', data)
+    return "hi"
     # posts = db.posts
     # result = posts.find({})
     return json.loads(json_util.dumps(data))
-
 
 
 
