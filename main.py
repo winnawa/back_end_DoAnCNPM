@@ -46,64 +46,128 @@ def index():
     return json_util.dumps(data)
 
 
+# @app.route('/createCollection')
+# def createCollection():
+#     #mongo.db.create_collection("user")
+#     print(mongo.db.list_collection_names())
+#     return "<h1>success</h1>"
+#     # data = [d for d in user_collection]
+#     # print('this is a', data)
+#     # #return "hi"
+#     # # posts = db.posts
+#     # # result = posts.find({})
+#     # return json_util.dumps(data)
 
 
 
+@app.route('/login/authenticate', methods=['POST'])
+def login_authentication():
+    # inputAccount = request.args.get('account')
+    # inputPassword = request.args.get('password')
+
+    data = request.get_json()
+
+    userName = ""
+    userAccount = ""
+    userPassword = ""
+    for key,value in data.items():
+        if key ==  "userAccount":
+            userAccount = value
+        if key == "userPassword":
+            userPassword = value
+    singleUser = mongo.db.user.find({})
+    data = [d for d in singleUser]
+    print(data)
+    singleUser = mongo.db.user.find({"account":userAccount ,"password" : userPassword})
+    data = [d for d in singleUser]
+    print(data)
 
 
+    if (len(data) > 0):
+        return json_util.dumps({
+                                    "data": {
+                                        "_id" : data[0]["_id"],
+                                        "user_name" : data[0]["username"]    
+                                    },
+                                    #data[0]
+                                    "status":True
+                                })
+    else:
+        error = Error("error",False)
+        return json.dumps(error.__dict__)
 
-# @main.route('/login/authenticate', methods=['POST'])
-# def login_authentication():
-#     inputEmail = request.args.get('email')
-#     inputPassword = request.args.get('password')
+@app.route('/signup', methods=['POST'])
+def signup():
+
+    data = request.get_json()
+
+    signupName = ""
+    signupAccount = ""
+    signupPassword = ""
+    for key,value in data.items():
+        print(key,value,"hi")
+        if key ==  "signupAccount":
+            signupAccount = value
+        if key == "signupPassword":
+            signupPassword = value
+        if key == "signupName":
+            signupName = value
+
+    singleUser = mongo.db.user.find_one({"account": signupAccount, "password" : signupPassword})
+    if (singleUser):
+        error = Error("user exists",False)
+        return json.dumps(error.__dict__)
     
-#     user_collection = mongo.db.users.find({})
-
-#     userList = User.query.filter(User.email == inputEmail, User.password == inputPassword).all()
-#     if (len(userList) >0):
-#         return json.dumps([singleUser.to_dict() for singleUser in userList])
-#     return json.dumps([])
-
-# @main.route('/signup', methods=['POST'])
-# def signup():
-
-#     data = request.get_json()
-   
-#     # print(dir(jsonData))
-#     # #print(jsonData.keys)
-#     # for key, value in jsonData.items():
-#     #     print(key, value)
-#     #     if key== "email":
-#     #         print("above is my email")
-#     # print(jsonData.keys())
-
-#     # return jsonData
-
-#     signupEmail = ""
-#     signupPassword = ""
-#     for key,value in data.items():
-#         if key ==  "email":
-#             signupEmail = value
-#         if key == "password":
-#             signupPassword = value
-
-#     userList = User.query.filter(User.email == signupEmail).all()
+    new_user = {    'account' : signupAccount, 
+                    'password' : signupPassword,
+                    'username' : signupName,
+                }
     
-#     if (len(userList) >0):
-#         error = Error("error","Email has already been used")
-#         return json.dumps(error.__dict__)
+    try:
+        mongo.db.user.insert_one(new_user)
+    except:
+        error = Error("Fail to add", False)
+        return(error.__dict__)
+    success = Success("Sucess", True)
+    return(success.__dict__)  
+
+
+
+@app.route('/posts/total_view', methods=['GET', 'POST'])
+def show_total_view():
+
     
-#     newUser = User(email=signupEmail,password=signupPassword,active=True)
-#     db_admin.session.add(newUser)
-#     db_admin.session.commit()
-#     success = Success("success","Successfully created user")
-#     return json.dumps(success.__dict__)
-    
+    total_post_collection = mongo.db.posts.find({})
+    total_posts = [d for d in total_post_collection]
+    num_of_total_post = len(total_posts)
+
+    auto_post_collection = mongo.db.posts.find({'is_auto': True})
+    auto_posts = [d for d in auto_post_collection]
+    num_of_auto_post = len(auto_posts)
 
 
+    fakenew_post_collection = mongo.db.posts.find({'is_fakenew': True})
+    fakenew_posts = [d for d in fakenew_post_collection]
+    num_of_fakenew_post = len(fakenew_posts)
 
 
+    medical_post_collection = mongo.db.posts.find({'is_medical': True})
+    medical_posts = [d for d in medical_post_collection]
+    num_of_medical_post = len(medical_posts)
 
+
+    verify_fakenew_post_collection = mongo.db.posts.find({'is_verify_fakenew': True})
+    verify_fakenew_posts = [d for d in verify_fakenew_post_collection]
+    num_of_verify_fakenew_post = len(verify_fakenew_posts)
+
+    data = {
+        "total_post" : num_of_total_post,
+        "auto_post" : num_of_auto_post,
+        "fake_new_post" : num_of_fakenew_post,
+        "medical_post" : num_of_medical_post,
+        "verify_fakenew_post" : num_of_verify_fakenew_post
+    }
+    return json_util.dumps(data)
 
 
 @app.route('/posts/page/<int:page_num>', methods=['GET', 'POST'])
@@ -114,13 +178,29 @@ def show_pages(page_num):
     
     post_collection = mongo.db.posts.find({}).skip(offset).limit(limit)
     data = [d for d in post_collection]
-    return json.loads(json_util.dumps(data))
+    return json_util.dumps(data)
 
 @app.route('/posts/single_post/<ObjectId:postID>', methods=['GET', 'POST'])
-def show_single_post(postID):
-    singlePost = mongo.db.posts.find_one_or_404({"_id": postID})
+def get_single_post(postID):
+    singlePost = mongo.db.posts.find_one({"_id": postID})
     if (singlePost):
-        return json.loads(json_util.dumps(singlePost))
+        return json_util.dumps(singlePost)
+    else:
+        error = Error("Cant find the post", False)
+        return(error.__dict__)
+
+
+@app.route('/posts/related_post/<ObjectId:postID>', methods=['GET', 'POST'])
+def get_related_post(postID):
+
+    evidences = mongo.db["post-evidence"].find({"_id": postID})
+    data = [d for d in evidences]
+    if (len(data)>0):
+        return json_util.dumps(data)
+    else:
+        error = Error("Cant find the post", False)
+        return(error.__dict__)
+
 
 
 
