@@ -63,8 +63,10 @@ def index():
 
 @app.route('/login/authenticate', methods=['POST'])
 def login_authentication():
-    # inputAccount = request.args.get('account')
-    # inputPassword = request.args.get('password')
+    
+    # singleUser = mongo.db.user.find({})
+    # array = [d for d in singleUser]
+    # print("current array",array)
 
     data = request.get_json()
 
@@ -78,10 +80,10 @@ def login_authentication():
             userPassword = value
     singleUser = mongo.db.user.find({})
     data = [d for d in singleUser]
-    print(data)
+    # print(data)
     singleUser = mongo.db.user.find({"account":userAccount ,"password" : userPassword})
     data = [d for d in singleUser]
-    print(data)
+    # print(data)
 
 
     if (len(data) > 0):
@@ -114,8 +116,9 @@ def signup():
         if key == "signupName":
             signupName = value
 
-    singleUser = mongo.db.user.find_one({"account": signupAccount, "password" : signupPassword})
-    if (singleUser):
+    singleUser = mongo.db.user.find({"account": signupAccount, "password" : signupPassword})
+    single_user_array = [d for d in singleUser]
+    if (len(single_user_array)>0):
         error = Error("user exists",False)
         return json.dumps(error.__dict__)
     
@@ -123,7 +126,7 @@ def signup():
                     'password' : signupPassword,
                     'username' : signupName,
                 }
-    
+    print(new_user)    
     try:
         mongo.db.user.insert_one(new_user)
     except:
