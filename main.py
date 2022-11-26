@@ -1,3 +1,4 @@
+from dbm import dumb
 import os
 import json
 from time import time
@@ -190,13 +191,30 @@ def get_single_post(postID):
         return(error.__dict__)
 
 
-@app.route('/posts/related_post/<ObjectId:postID>', methods=['GET', 'POST'])
+@app.route('/posts/related/<ObjectId:postID>', methods=['GET', 'POST'])
 def get_related_post(postID):
+    
+    relationships = mongo.db["post-evidence"].find({"post_id": postID})
+    # evidences = mongo.db["post-evidence"].find({})
+    data = [d for d in relationships]
+    # print("this is data",data)
 
-    evidences = mongo.db["post-evidence"].find({"_id": postID})
-    data = [d for d in evidences]
-    if (len(data)>0):
-        return json_util.dumps(data)
+
+    # single_evidence = mongo.db["evidences"].find({})
+    # data1 = [d for d in single_evidence]
+    # print('this is  evidence',data1)
+
+    array_of_evidence = []
+    for element in data:
+        single_evidence = mongo.db["evidences"].find({"_id": element["evidence_id"]})
+        single_evidence_toArray = [d for d in single_evidence]
+        if len(single_evidence_toArray)==1:
+            array_of_evidence.append(single_evidence_toArray[0])
+        
+    if len(array_of_evidence) >0:
+        return json_util.dumps(array_of_evidence)
+    # if (len(data)>0):
+    #     return json_util.dumps(data)
     else:
         error = Error("Cant find the post", False)
         return(error.__dict__)
