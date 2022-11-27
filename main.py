@@ -2,6 +2,7 @@ from dbm import dumb
 import os
 import json
 from time import time
+from xml.dom.minidom import Element
 from flask import Flask
 from cfg.config import Config
 from flask import Blueprint
@@ -58,6 +59,20 @@ def index():
 #     # # posts = db.posts
 #     # # result = posts.find({})
 #     # return json_util.dumps(data)
+
+
+@app.route('/deleteDocuments')
+def deleteDocuments():
+    mongo.db.posts.delete_many({"user_id":""})
+    mongo.db.posts.delete_many({"user_id":"user_id"})
+    # print(mongo.db.list_collection_names())
+    return "<h1>success</h1>"
+    # data = [d for d in user_collection]
+    # print('this is a', data)
+    # #return "hi"
+    # # posts = db.posts
+    # # result = posts.find({})
+    # return json_util.dumps(data)
 
 
 
@@ -371,58 +386,77 @@ def upload_file_post():
         user_id = ""
         username = ""
 
+        element=0
+        tempString = ""
         for single_char in single_line:
             if single_char == "," or single_char=="\n":
                 if (element == 0):
-                    if (tempString == "0"):
+                    if (tempString == "false"):
                         is_auto = False
                 if (element == 1):
-                    if (tempString == "1"):
+                    if (tempString == "true"):
                         is_fakenew = True
                 if (element == 2):
-                    if (tempString == "1"):
+                    if (tempString == "true"):
                         is_medical = True
                 if (element == 3):
-                    if (tempString == "1"):
+                    if (tempString == "true"):
                         is_verify_fakenew = True
                 if (element == 4):  
-                    page_id = tempString
+                    if (tempString != "page_id"):
+                        page_id = tempString
                 if (element == 5):
-                    post_id = tempString
+                    if (tempString != "post_id"):
+                        post_id = tempString
                 if (element == 6):
-                    post_url = tempString
+                    if (tempString != "post_url"):
+                        post_url = tempString
                 if (element == 7):
+                    if (tempString != "text"):
                     #group_name, NOT the comments because cmt will be export in another file
-                    text = tempString
+                        text = tempString
                 if (element == 8):
-                    user_id = tempString
+                    if (tempString != "user_id"):
+                        user_id = tempString
                 if (element == 9):
-                    username = tempString
+                    if (tempString != "username"):
+                        username = tempString
                 element += 1
                 print(tempString)
                 tempString = ""
             else:
-                tempString += single_char    
+                tempString += single_char
 
-   
-    
-        new_post = {    'comments_full' : comments_full, 
-                        'images' : images,
-                        'is_auto': is_auto,
-                        'is_fakenew' : is_fakenew,
-                        'is_medical' : is_medical,
-                        'is_verify_fakenew' : is_verify_fakenew,
-                        'page_id' : page_id,
-                        'post_id' : post_id,
-                        'post_url' : post_url,
-                        'text' : text,
-                        'user_id' : user_id,
-                        'username' : username}
-        try:        
-            mongo.db.posts.insert_one(new_post)
-        except:
-            error = Error("Fail to add", False)
-            return(error.__dict__)
+        # special case because  python doest loop over the last word
+        if (tempString != "username"):
+            username = tempString
+        # special case because  python doest loop over the last word
+
+
+
+
+        # print("tempstringnow",tempString)
+        # print("this is username",username)
+        if (username != ''):
+            new_post = {    'comments_full' : comments_full, 
+                            'images' : images,
+                            'is_auto': is_auto,
+                            'is_fakenew' : is_fakenew,
+                            'is_medical' : is_medical,
+                            'is_verify_fakenew' : is_verify_fakenew,
+                            'page_id' : page_id,
+                            'post_id' : post_id,
+                            'post_url' : post_url,
+                            'text' : text,
+                            'user_id' : user_id,
+                            'username' : username
+                        }
+            # print(new_post)
+            try:        
+                mongo.db.posts.insert_one(new_post)
+            except:
+                error = Error("Fail to add", False)
+                return(error.__dict__)
     success = Success("Sucess", True)
     return(success.__dict__)    
 
