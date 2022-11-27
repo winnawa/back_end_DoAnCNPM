@@ -192,7 +192,7 @@ def show_total_view():
 @app.route('/posts/page/<int:page_num>', methods=['GET', 'POST'])
 def show_pages(page_num):
 
-    limit= 1
+    limit= 10
     offset= page_num*limit
     
     post_collection = mongo.db.posts.find({}).skip(offset).limit(limit)
