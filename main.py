@@ -2,7 +2,6 @@ from dbm import dumb
 import os
 import json
 from time import time
-from xml.dom.minidom import Element
 from flask import Flask
 from cfg.config import Config
 from flask import Blueprint
@@ -237,6 +236,66 @@ def get_related_post(postID):
         error = Error("Cant find the post", False)
         return(error.__dict__)
 
+
+
+@app.route('/posts/update/<ObjectId:postID>', methods=['GET', 'POST'])
+def update_post(postID):
+    
+    data = request.get_json()
+
+    verifyNews = False
+    verifyNewsTouch = False
+
+    medicalNews = False
+    medicalNewsTouch = False
+
+    fakeNews = False
+    fakeNewsTouch = False
+
+    AI_Check = False
+
+
+    for key,value in data.items():
+        # print(key,value,"hi")
+        if key ==  "verifyNews":
+            verifyNewsTouch = True
+            if value == "true":
+                verifyNews = True
+        if key == "medicalNews":
+            medicalNewsTouch = True
+            if value == "true":
+                medicalNews = True
+        if key == "fakeNews":
+            fakeNewsTouch = True
+            if value == "true":
+                fakeNews = True
+
+    # post = {
+    #     "is_medical":medicalNews,
+    #     "is_auto" : AI_Check,
+    #     "is_fakenew" :fakeNews,
+    #     "is_verify_fakenew" : verifyNews,
+    # }
+    #print(post)
+
+    cursorPost = mongo.db.posts.find({"_id":postID})
+    array = [d for d in cursorPost]
+    if (len(array) > 0):
+        mongo.db.posts.update_one({"_id":postID},{
+            "$set": {
+                "is_medical":medicalNews,
+                "is_auto" : AI_Check,
+                "is_fakenew" :fakeNews,
+                "is_verify_fakenew": verifyNews
+            }
+        })
+        success = Success("Modify post Successfully", True)
+        return(success.__dict__)
+    else:
+        error = Error("ID not found", False)
+        return(error.__dict__)
+    
+    
 
 
 
