@@ -238,7 +238,7 @@ def get_related_post(postID):
 
 
 
-@app.route('/posts/update/<ObjectId:postID>', methods=['GET', 'POST'])
+@app.route('/posts/update/<ObjectId:postID>', methods=['POST'])
 def update_post(postID):
     
     data = request.get_json()
