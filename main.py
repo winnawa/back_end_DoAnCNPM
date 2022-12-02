@@ -210,10 +210,14 @@ def get_single_post(postID):
 
 @app.route('/posts/related/<ObjectId:postID>', methods=['GET', 'POST'])
 def get_related_post(postID):
-    
+    showup = mongo.db["post-evidence"].find({})
+    tempData = [d for d in showup]
+    print(tempData)
+
+
     relationships = mongo.db["post-evidence"].find({"post_id": postID})
     # evidences = mongo.db["post-evidence"].find({})
-    data = [d for d in relationships]
+    relationshipsArray = [d for d in relationships]
     # print("this is data",data)
 
 
@@ -222,11 +226,14 @@ def get_related_post(postID):
     # print('this is  evidence',data1)
 
     array_of_evidence = []
-    for element in data:
+    for element in relationshipsArray:
         single_evidence = mongo.db["evidences"].find({"_id": element["evidence_id"]})
         single_evidence_toArray = [d for d in single_evidence]
         if len(single_evidence_toArray)==1:
-            array_of_evidence.append(single_evidence_toArray[0])
+            tempObj = single_evidence_toArray[0]
+            tempObj["degree"]= element["label_disagree"]
+            # array_of_evidence.append(single_evidence_toArray[0])
+            array_of_evidence.append(tempObj)
         
     if len(array_of_evidence) >0:
         return json_util.dumps(array_of_evidence)
